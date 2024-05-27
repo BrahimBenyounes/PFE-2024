@@ -17,7 +17,7 @@ pipeline {
         stage('Docker Login') {
             steps {
                 script {
-                    // Log in to Docker Hub with hardcoded credentials
+                    // Log in to Docker Hub
                     sh "docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}"
                 }
             }
@@ -26,12 +26,12 @@ pipeline {
         stage('Build and Push Docker Images') {
             steps {
                 script {
-                    // Build and push each Docker image
+                    // Define services to build and push
                     def services = ['angular-app', 'eureka', 'product', 'stock', 'operateur', 'gateway']
                     services.each { service ->
+                        // Build Docker image
                         sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build ${service}"
                         // Tag and push the image to Docker Hub
-                        sh "docker tag ${service} ${DOCKER_HUB_USERNAME}/${service}:latest"
                         sh "docker push ${DOCKER_HUB_USERNAME}/${service}:latest"
                     }
                 }
