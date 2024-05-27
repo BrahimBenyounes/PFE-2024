@@ -1,0 +1,111 @@
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-image: url('assets/gestion.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wrapper {
+    background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 300px;
+}
+
+.logo img {
+    width: 100px;
+    height: auto;
+}
+
+.name {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.form-field {
+    margin-bottom: 15px;
+}
+
+.form-field span {
+    margin-right: 10px;
+}
+
+input {
+    width: calc(100% - 40px);
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.text-center {
+    margin-top: 10px;
+}
+
+.text-center a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.text-center a:hover {
+    text-decoration: underline;
+}
+
+
+
+</style>
+<body>
+    <div class="wrapper">
+        <div class="logo">
+            <img src="assets/entrepot.png" alt="">
+        </div>
+        <div class="text-center mt-4 name">
+            Gestion De stock
+        </div>
+        <form class="p-3 mt-3">
+            <div class="form-field d-flex align-items-center">
+                <span class="far fa-user"></span>
+                <input type="text" name="userName" id="userName" placeholder="Username">
+            </div>
+            <div class="form-field d-flex align-items-center">
+                <span class="fas fa-key"></span>
+                <input type="password" name="password" id="pwd" placeholder="Password">
+            </div>
+            <button class="btn mt-3">Login</button>
+        </form>
+        <div class="text-center fs-6">
+            <a href="#">Forget password?</a> or 
+          
+                <a href="#">
+                 
+                  <a class="nav-link" routerLink="/signup">Sign up</a>
+                </a>
+              
+        </div>
+    </div>
+</body>
+

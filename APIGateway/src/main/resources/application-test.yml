@@ -1,0 +1,54 @@
+eureka:
+  client:
+    fetch-registry: "true"
+    register-with-eureka: "true"
+    serviceUrl:
+      defaultZone: http://eureka:8761/eureka
+spring:
+  application:
+    name: APIGateway
+  cloud:
+    gateway:
+      routes:
+        - id: sterilization-service
+          uri: lb://sterilization-service
+          order: 1
+          predicates:
+            - Path=/sterilizations/**,/veterinarians/**
+        - id: vaccination-service
+          uri: lb://vaccination-service
+          order: 0
+          predicates:
+            - Path=/vaccines/**,/vaccineTypes/**
+        - id: pet
+          uri: lb://pets
+          order: 2
+          predicates:
+            - Path=/pets/**
+        - id: local-service
+          uri: lb://local-service
+          order: 3
+          predicates:
+            - Path=/locals/**
+        - id: reward-service
+          uri: lb://reward-service
+          order: 4
+          predicates:
+            - Path=/rewards/**
+        - id: stock
+          uri: lb://stock
+          order: 5
+          predicates:
+            - Path=/stock/**
+        - id: operateur
+          uri: lb://operateur
+          order: 6
+          predicates:
+            - Path=/operateur/**
+        - id: product
+          uri: lb://product
+          order: 5
+          predicates:
+            - Path=/**
+server:
+  port: "8888"
