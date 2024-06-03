@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE_VERSION = '1.0.0'
         DOCKER_HUB_USERNAME = 'brahim2023'
-        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        DOCKER_COMPOSE_FILE = 'docker-compose-test.yml'
     }
 
     stages {
