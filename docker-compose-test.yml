@@ -12,7 +12,27 @@ services:
       - NODE_OPTIONS=--openssl-legacy-provider
     networks:
       - ms-network
+      
 
+  eureka:
+    container_name: eureka
+    build:
+      context: ./eureka
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - ms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://eureka:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    environment:
+      - eureka.instance.hostname=eureka
+      - eureka.client.service-url.defaultZone=http://eureka:8761/eureka/
 
  
   
