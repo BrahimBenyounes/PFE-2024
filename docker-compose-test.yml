@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  angular-app:
+    container_name: angular-app
+    build:
+      context: ./angular-front
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
+    networks:
+      - ms-network
+
+
+ 
+  
+  mysql-stock:
+    image: mysql:8
+    networks:
+      - local-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=stock
+    healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+
+
+  stock:
+    container_name: stock
+    build:
+      context: ./stock
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    networks:
+      - local-mysql
+      - ms-network
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-stock/stock?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://stock:8084 || exit 1"]
+      interval: 60s
+      retries: 5
+      start_period: 15s
+      timeout: 10s
+    depends_on:
+      mysql-stock:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+
+
+
+networks:
+  local-mysql:
+  ms-network:
+    driver: bridge
