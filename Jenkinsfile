@@ -13,11 +13,11 @@ pipeline {
                 script {
                     def services = [
                         [name: 'angular-app', context: './angular-front'],
-                        [name: 'eureka', context: './eureka'],
-                        [name: 'product', context: './product'],
+                       // [name: 'eureka', context: './eureka'],
+                        //[name: 'product', context: './product'],
                         [name: 'stock', context: './stock'],
-                        [name: 'operateur', context: './operateur'],
-                        [name: 'gateway', context: './APIGateway']
+                        //[name: 'operateur', context: './operateur'],
+                        //[name: 'gateway', context: './APIGateway']
                     ]
 
                     services.each { service ->
