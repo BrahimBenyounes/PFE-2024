@@ -37,6 +37,7 @@ services:
  
   
   mysql-stock:
+    container_name: mysql-stock
     image: mysql:8
     networks:
       - local-mysql
