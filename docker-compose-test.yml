@@ -31,7 +31,7 @@ services:
     container_name: mysql-stock
     image: mysql:8
     networks:
-      - local-mysql
+      - ms-network
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_PASSWORD=root
@@ -46,16 +46,14 @@ services:
     ports:
       - "8084:8084"
     networks:
-      - local-mysql
       - ms-network
     environment:
       - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-stock:3306/stock?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-stock/stock?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
     depends_on:
       - mysql-stock
 
 networks:
-  local-mysql:
   ms-network:
     driver: bridge
