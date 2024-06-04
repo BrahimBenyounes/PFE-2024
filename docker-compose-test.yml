@@ -12,7 +12,6 @@ services:
       - NODE_OPTIONS=--openssl-legacy-provider
     networks:
       - ms-network
-      
 
   eureka:
     container_name: eureka
@@ -28,8 +27,6 @@ services:
       - eureka.instance.hostname=eureka
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka/
 
- 
-  
   mysql-stock:
     container_name: mysql-stock
     image: mysql:8
@@ -39,7 +36,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=stock
-
+    restart: unless-stopped
 
   stock:
     container_name: stock
@@ -53,10 +50,10 @@ services:
       - ms-network
     environment:
       - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-stock/stock?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-stock:3306/stock?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
-
-
+    depends_on:
+      - mysql-stock
 
 networks:
   local-mysql:
