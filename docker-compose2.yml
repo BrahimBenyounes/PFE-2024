@@ -93,6 +93,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=root
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-stock/stock?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://stock:8084 || exit 1"]
+      interval: 60s
+      retries: 5
+      start_period: 15s
+      timeout: 10s
+    depends_on:
+      mysql-stock:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
    
 
 
