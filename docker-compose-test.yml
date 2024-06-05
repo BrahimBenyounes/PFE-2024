@@ -12,7 +12,6 @@ services:
       - NODE_OPTIONS=--openssl-legacy-provider
     networks:
       - ms-network
-      
 
   eureka:
     container_name: eureka
@@ -34,10 +33,47 @@ services:
       - eureka.instance.hostname=eureka
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka/
 
- 
+  mysql-product:
+    image: mysql:8
+    networks:
+      - local-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=product
+    healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+
+  product:
+    container_name: product
+    build:
+      context: ./product
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8087"
+    networks:
+      - local-mysql
+      - ms-network
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-product/product?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://product:8087 || exit 1"]
+      interval: 60s
+      retries: 5
+      start_period: 15s
+      timeout: 10s
+    depends_on:
+      mysql-product:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+
   
   mysql-stock:
-    container_name: mysql-stock
     image: mysql:8
     networks:
       - local-mysql
@@ -77,6 +113,59 @@ services:
       eureka:
         condition: service_healthy
 
+
+  mysql-operateur:
+    image: mysql:8
+    networks:
+      - local-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=operateur
+    healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+
+
+  operateur:
+    container_name: operateur
+    build:
+      context: ./operateur
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    networks:
+      - local-mysql
+      - ms-network
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-operateur/operateur?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://stock:8086 || exit 1"]
+      interval: 60s
+      retries: 5
+      start_period: 15s
+      timeout: 10s
+    depends_on:
+      mysql-operateur:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+
+  gateway:
+    container_name: gateway
+    build:
+      context: ./APIGateway
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    networks:
+      - ms-network
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
+      - SPRING_PROFILES_ACTIVE=test
 
 
 networks:
