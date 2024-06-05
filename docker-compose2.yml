@@ -34,6 +34,7 @@ services:
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka/
 
   mysql-product:
+    container_name: mysql-product
     image: mysql:8
     networks:
       - local-mysql
@@ -64,6 +65,7 @@ services:
 
   
   mysql-stock:
+    container_name: mysql-stock
     image: mysql:8
     networks:
       - local-mysql
@@ -95,6 +97,7 @@ services:
 
 
   mysql-operateur:
+    container_name: mysql-operateur
     image: mysql:8
     networks:
       - local-mysql
