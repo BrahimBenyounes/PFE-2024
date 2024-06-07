@@ -8,6 +8,7 @@ pipeline {
     }
 
     stages {
+       
         stage('Control Docker Compose Services') {
             steps {
                 script {
@@ -16,6 +17,5 @@ pipeline {
                 }
             }
         }
-
-       
+    }
 }
