@@ -14,13 +14,20 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') { // 'SonarQube' is the name you gave to the SonarQube server in Jenkins
-                    script {
-                        sh 'sonar-scanner ' +
-                           '-Dsonar.projectKey=Gestiondestock ' +
-                           '-Dsonar.sources=. ' +
-                           '-Dsonar.host.url=${SONAR_HOST_URL} ' +
-                           '-Dsonar.login=${SONAR_AUTH_TOKEN}'
+                script {
+                    def scannerHome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    def javaHome = tool name: 'JAVA_HOME', type: 'hudson.model.JDK'
+
+                    withEnv(["JAVA_HOME=${javaHome}", "SONAR_HOST_URL=http://192.168.1.160:9000"]) {
+                        withSonarQubeEnv('SonarQube') {
+                            sh """
+                                ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.login=admin \
+                                -Dsonar.password=vagrant \
+                                -Dsonar.projectKey=GestionDestock \
+                                -Dsonar.java.binaries=target/classes
+                            """
+                        }
                     }
                 }
             }
