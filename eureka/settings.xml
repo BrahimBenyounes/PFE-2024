@@ -116,8 +116,8 @@ under the License.
      | NOTE: You should either specify username/password OR privateKey/passphrase, since these pairings are
      |       used together.
      |
+    -->
     <server>
-                -->
       <id>deploymentRepo</id>
       <username>admin</username>
       <password>vagrant</password>
