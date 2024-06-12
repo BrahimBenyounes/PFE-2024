@@ -9,33 +9,36 @@ pipeline {
     }
 
     stages {
-        stage('SonarQube Analysis') {
+        stage('Angular Frontend Build and SonarQube Analysis') {
             steps {
-                script {
-                    // Install npm dependencies and build Angular app
-                    sh "npm install"
-                    sh "npm run build --prod"
+                dir('angular-front') {
+                    script {
+                        // Install npm dependencies and build Angular app
+                        sh "npm install"
+                        sh "npm run build --prod"
 
-                    // Run SonarQube analysis using sonar-scanner
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                            sonar-scanner \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.login=admin \
-                            -Dsonar.password=vagrant \
-                            -Dsonar.projectKey=GestionDestock \
-                            -Dsonar.sources=src \
-                            -Dsonar.exclusions=**/*.test.*,**/node_modules/** \
-                            -Dsonar.sourceEncoding=UTF-8
-                        """
+                        // Run SonarQube analysis using sonar-scanner
+                        withSonarQubeEnv('SonarQube') {
+                            sh """
+                                sonar-scanner \
+                                -Dsonar.host.url=${SONAR_HOST_URL} \
+                                -Dsonar.login=admin \
+                                -Dsonar.password=vagrant \
+                                -Dsonar.projectKey=GestionDestock \
+                                -Dsonar.sources=src \
+                                -Dsonar.exclusions=**/*.test.*,**/node_modules/** \
+                                -Dsonar.sourceEncoding=UTF-8
+                            """
+                        }
                     }
                 }
             }
         }
 
-        stage('Control Docker Compose Services') {
+        stage('Microservices Build and Docker Compose') {
             steps {
                 script {
+                    // Example: Build and start microservices using Docker Compose
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
                 }
