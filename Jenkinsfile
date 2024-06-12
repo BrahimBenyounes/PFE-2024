@@ -7,11 +7,14 @@ pipeline {
         DOCKER_COMPOSE_FILE = 'docker-compose-test.yml'
     }
 
-
-        stage('Microservices Build and Docker Compose') {
+    stages {
+        stage('Build and Deploy to Nexus') {
             steps {
                 script {
-                    // Example: Build and start microservices using Docker Compose
+                    // Build Maven project and deploy artifacts to Nexus
+                    sh "mvn clean deploy -DskipTests=true"
+
+                    // Clean up and start microservices using Docker Compose
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
                 }
