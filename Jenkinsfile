@@ -12,16 +12,19 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Run SonarQube analysis using Jenkins' SonarQube Scanner
+                    // Install npm dependencies and build Angular app
+                    sh "npm install"
+                    sh "npm run build --prod"
+
+                    // Run SonarQube analysis using sonar-scanner
                     withSonarQubeEnv('SonarQube') {
-                        // Configuration directly from Jenkins UI
                         sh """
-                            mvn sonar:sonar \
+                            sonar-scanner \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
                             -Dsonar.login=admin \
                             -Dsonar.password=vagrant \
                             -Dsonar.projectKey=GestionDestock \
-                            -Dsonar.sources=angular-front/src \
+                            -Dsonar.sources=src \
                             -Dsonar.exclusions=**/*.test.*,**/node_modules/** \
                             -Dsonar.sourceEncoding=UTF-8
                         """
