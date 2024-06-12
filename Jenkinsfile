@@ -13,8 +13,10 @@ pipeline {
             steps {
                 dir('angular-front') {
                     script {
-                        // Install npm dependencies and build Angular app
+                        // Install npm dependencies
                         sh "npm install"
+                        
+                        // Build Angular app for production
                         sh "npm run build --prod"
 
                         // Run SonarQube analysis using sonar-scanner
@@ -22,11 +24,11 @@ pipeline {
                             sh """
                                 sonar-scanner \
                                 -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=admin \
-                                -Dsonar.password=vagrant \
+                                -Dsonar.login=${env.SONAR_LOGIN} \
+                                -Dsonar.password=${env.SONAR_PASSWORD} \
                                 -Dsonar.projectKey=GestionDestock \
                                 -Dsonar.sources=src \
-                                -Dsonar.exclusions=**/*.test.*,**/node_modules/** \
+                                -Dsonar.exclusions="**/*.test.*,**/node_modules/**" \
                                 -Dsonar.sourceEncoding=UTF-8
                             """
                         }
