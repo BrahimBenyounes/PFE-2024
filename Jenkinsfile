@@ -12,7 +12,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Run SonarQube analysis using configured SonarQube Scanner tool
+                    // Run SonarQube analysis using SonarQube Scanner tool
                     withSonarQubeEnv('SonarQube') {
                         sh """
                             sonar-scanner \
