@@ -170,5 +170,6 @@ services:
 
 networks:
   local-mysql:
+    driver: bridge
   ms-network:
     driver: bridge
