@@ -11,8 +11,6 @@ pipeline {
         stage('Build and Deploy to Nexus') {
             steps {
                 script {
-                    // Build Maven project and deploy artifacts to Nexus
-                    sh "mvn clean deploy -DskipTests=true"
 
                     // Clean up and start microservices using Docker Compose
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
