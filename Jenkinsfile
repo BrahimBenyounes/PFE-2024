@@ -5,25 +5,27 @@ pipeline {
         DOCKER_IMAGE_VERSION = '1.0.0'
         DOCKER_HUB_USERNAME = 'brahim2023'
         DOCKER_COMPOSE_FILE = 'docker-compose-test.yml'
+        SONAR_HOST_URL = 'http://192.168.1.160:9000'
     }
 
     stages {
-       
-
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    def scannerHome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                    def javaHome = tool name: 'JAVA_HOME', type: 'hudson.model.JDK'
-
-                    withEnv(["JAVA_HOME=${javaHome}", "SONAR_HOST_URL=http://192.168.1.160:9000"]) {
+                    def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    
+                    withEnv(["PATH+SONAR=${scannerHome}/bin"]) {
                         withSonarQubeEnv('SonarQube') {
                             sh """
-                                ${scannerHome}/bin/sonar-scanner \
+                                sonar-scanner \
+                                -Dsonar.host.url=${SONAR_HOST_URL} \
                                 -Dsonar.login=admin \
                                 -Dsonar.password=vagrant \
                                 -Dsonar.projectKey=GestionDestock \
-                                -Dsonar.java.binaries=target/classes
+                                -Dsonar.sources=angular-front/src \
+                                -Dsonar.exclusions=**/*.test.*,**/node_modules/** \
+                                -Dsonar.language=js \
+                                -Dsonar.sourceEncoding=UTF-8
                             """
                         }
                     }
