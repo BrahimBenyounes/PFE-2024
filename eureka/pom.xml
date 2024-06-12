@@ -55,7 +55,7 @@
 		<repository>
 			<id>deploymentRepo</id>
 			<name>maven-releases</name>
-			<url>http://192.168.1.160:1932/repository/maven-public/</url>
+			<url>http://192.168.1.160:1932/repository/maven-releases/</url>
 		</repository>
 	</distributionManagement>
 </project>
