@@ -28,7 +28,7 @@ pipeline {
                                 -Dsonar.host.url=${SONAR_HOST_URL} \
                                 -Dsonar.login=admin \
                                 -Dsonar.password=vagrant \
-                                -Dsonar.projectKey=GestionDestock \
+                                -Dsonar.projectKey=GestiondeStock \
                                 -Dsonar.sources=angular-front/src \
                                 -Dsonar.exclusions=**/*.test.*,**/node_modules/** \
                                 -Dsonar.sourceEncoding=UTF-8
