@@ -12,8 +12,15 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
+                    // Ensure SonarScanner tool is correctly found
                     def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    echo "SonarScanner Home: ${scannerHome}"
                     
+                    // Print available tools for verification
+                    tool 'SonarScanner'
+                    sh 'sonar-scanner -h'
+
+                    // Run SonarQube analysis
                     withEnv(["PATH+SONAR=${scannerHome}/bin"]) {
                         withSonarQubeEnv('SonarQube') {
                             sh """
@@ -24,7 +31,6 @@ pipeline {
                                 -Dsonar.projectKey=GestionDestock \
                                 -Dsonar.sources=angular-front/src \
                                 -Dsonar.exclusions=**/*.test.*,**/node_modules/** \
-                                -Dsonar.language=js \
                                 -Dsonar.sourceEncoding=UTF-8
                             """
                         }
