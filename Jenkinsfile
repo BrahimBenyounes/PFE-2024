@@ -12,10 +12,11 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Run SonarQube analysis using SonarQube Scanner tool
+                    // Run SonarQube analysis using Jenkins' SonarQube Scanner
                     withSonarQubeEnv('SonarQube') {
+                        // Configuration directly from Jenkins UI
                         sh """
-                            sonar-scanner \
+                            mvn sonar:sonar \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
                             -Dsonar.login=admin \
                             -Dsonar.password=vagrant \
