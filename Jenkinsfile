@@ -8,9 +8,27 @@ pipeline {
         SONAR_HOST_URL = 'http://192.168.1.160:9000'
         SONAR_LOGIN = 'admin'
         SONAR_PASSWORD = 'vagrant'
+        SONAR_TOKEN = 'your_sonarqube_token_here' // Update with your SonarQube token
     }
 
     stages {
+        stage('Delete Projects from SonarQube') {
+            steps {
+                script {
+                    def sonarUrl = "${env.SONAR_HOST_URL}"
+                    def sonarToken = "${env.SONAR_TOKEN}"
+
+                    // List of project keys to delete
+                    def projectsToDelete = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+
+                    projectsToDelete.each { projectKey ->
+                        // Use curl to send HTTP POST request to delete project
+                        sh "curl -u ${sonarToken}: -X POST ${sonarUrl}/api/projects/delete?key=${projectKey}"
+                    }
+                }
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
