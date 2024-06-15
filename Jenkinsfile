@@ -5,28 +5,52 @@ pipeline {
         DOCKER_IMAGE_VERSION = '1.0.0'
         DOCKER_HUB_USERNAME = 'brahim2023'
         DOCKER_COMPOSE_FILE = 'docker-compose-test.yml'
-        PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+        SONAR_HOST_URL = 'http://192.168.1.160:9000'
+        SONAR_LOGIN = 'admin'
+        SONAR_PASSWORD = 'vagrant'
     }
 
     stages {
-        stage('Build, Test, and Deploy') {
+        stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Loop through each project in PROJECTS
-                    for (String project : env.PROJECTS) {
+                    // Define the list of projects
+                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+
+                    // Loop through each project
+                    PROJECTS.each { project ->
                         echo "Processing project: ${project}"
 
                         // Change directory to the project
                         dir(project) {
-                            // Run Maven commands
+                            // Run Maven commands for SonarQube analysis
                             sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
-                            sh 'mvn sonar:sonar ' +
-                               "-Dsonar.login=admin " +
-                               "-Dsonar.password=vagrant " +
-                               "-Dsonar.projectKey=${project} " +
-                               "-Dsonar.host.url=http://192.168.1.160:9000"
 
-                            // Deploy the project
+                            // SonarQube analysis
+                            sh "mvn sonar:sonar " +
+                               "-Dsonar.login=${env.SONAR_LOGIN} " +
+                               "-Dsonar.password=${env.SONAR_PASSWORD} " +
+                               "-Dsonar.projectKey=${project} " +
+                               "-Dsonar.host.url=${env.SONAR_HOST_URL}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Nexus Deployment') {
+            steps {
+                script {
+                    // Define the list of projects again (redundant for illustration, can be defined once at the end)
+                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+
+                    // Loop through each project
+                    PROJECTS.each { project ->
+                        echo "Deploying project: ${project}"
+
+                        // Change directory to the project
+                        dir(project) {
+                            // Deploy the project to Nexus (assuming Nexus deployment is configured in pom.xml)
                             sh 'mvn clean deploy'
                         }
                     }
@@ -38,8 +62,8 @@ pipeline {
             steps {
                 script {
                     // Clean up and start microservices using Docker Compose
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
+                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} down"
+                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} up -d --build"
                 }
             }
         }
