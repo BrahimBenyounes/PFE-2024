@@ -9,7 +9,26 @@ pipeline {
 
     stages {
 
-        stage('Build and Deploy jeureka') {
+
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    // Change directory to 'eureka'
+                    dir('eureka') {
+                        // Run the SonarQube analysis
+                        sh "./mvnw clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true"
+                        sh """
+                            ./mvnw sonar:sonar \
+                            -Dsonar.login=admin \
+                            -Dsonar.password=vagrant \
+                            -Dsonar.projectKey=EUREKA \
+                            -Dsonar.host.url=http://192.168.1.160:9000
+                        """
+                    }
+                }
+            }
+        }
+        stage('Build and Deploy eureka') {
             steps {
                 script {
                     dir('eureka') {
