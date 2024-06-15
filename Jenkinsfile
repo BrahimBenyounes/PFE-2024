@@ -5,6 +5,7 @@ pipeline {
         SONAR_HOST_URL = 'http://192.168.1.160:9000'
         SONAR_LOGIN = credentials('sonar-login')
         PROJECT_KEYS = 'APIGateway,eureka,operateur,product,stock'
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
     }
 
     stages {
@@ -42,8 +43,6 @@ pipeline {
                 }
             }
         }
-    }
-
 
         stage('Nexus Deployment') {
             steps {
@@ -69,7 +68,10 @@ pipeline {
             steps {
                 script {
                     // Define the list of microservices
-                    ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"].each { serviceName ->
+                    def MICROSERVICES = ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"]
+
+                    // Loop through each microservice and deploy
+                    MICROSERVICES.each { serviceName ->
                         deployMicroservice(serviceName)
                     }
                 }
