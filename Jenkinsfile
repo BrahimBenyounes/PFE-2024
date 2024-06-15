@@ -10,12 +10,15 @@ pipeline {
         SONAR_PASSWORD = 'vagrant'
     }
 
-
     stages {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
+                    // Define the list of projects
+                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+
+                    // Loop through each project
+                    PROJECTS.each { project ->
                         echo "Processing project: ${project}"
 
                         // Change directory to the project
@@ -27,7 +30,7 @@ pipeline {
                             sh "mvn sonar:sonar " +
                                "-Dsonar.login=${env.SONAR_LOGIN} " +
                                "-Dsonar.password=${env.SONAR_PASSWORD} " +
-                               "-Dsonar.projectKey=${project} " +
+                               "-Dsonar.projectKey=${project.toLowerCase()} " + // Ensure lowercase project key
                                "-Dsonar.host.url=${env.SONAR_HOST_URL}"
                         }
                     }
@@ -38,7 +41,11 @@ pipeline {
         stage('Nexus Deployment') {
             steps {
                 script {
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
+                    // Define the list of projects
+                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+
+                    // Loop through each project
+                    PROJECTS.each { project ->
                         echo "Deploying project: ${project}"
 
                         // Change directory to the project
