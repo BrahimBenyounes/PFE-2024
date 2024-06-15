@@ -14,11 +14,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Define the list of projects
-                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
-
-                    // Loop through each project
-                    PROJECTS.each { project ->
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
                         echo "Processing project: ${project}"
 
                         // Change directory to the project
@@ -41,11 +37,7 @@ pipeline {
         stage('Nexus Deployment') {
             steps {
                 script {
-                    // Define the list of projects again (redundant for illustration, can be defined once at the end)
-                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
-
-                    // Loop through each project
-                    PROJECTS.each { project ->
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
                         echo "Deploying project: ${project}"
 
                         // Change directory to the project
@@ -61,11 +53,22 @@ pipeline {
         stage('Deploy Microservices') {
             steps {
                 script {
-                    // Clean up and start microservices using Docker Compose
-                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} down"
-                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} up -d --build"
+                    // Define the list of microservices
+                    ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"].each { serviceName ->
+                        deployMicroservice(serviceName)
+                    }
                 }
             }
         }
     }
+}
+
+def deployMicroservice(serviceName) {
+    echo "Deploying microservice: ${serviceName}"
+    // Implement deployment logic for each microservice
+    // Example: Use Docker Compose or custom deployment scripts
+    // For illustration, let's echo the deployment command
+    echo "Deploying ${serviceName}..."
+    // Replace this with actual deployment commands as per your setup
+    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d ${serviceName}"
 }
