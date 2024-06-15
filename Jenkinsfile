@@ -29,26 +29,44 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    // Define the list of projects
-                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+    stage('SonarQube Analysis') {
+        steps {
+            script {
+                // Define the list of projects
+                def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
 
-                    // Loop through each project
-                    PROJECTS.each { project ->
-                        echo "Processing project: ${project}"
+                // Loop through each project
+                PROJECTS.each { project ->
+                    echo "Processing project: ${project}"
 
-                        // Change directory to the project
+                    // Check if project already exists in SonarQube
+                    def projectExists = sh(
+                        script: "curl -u ${env.SONAR_LOGIN}:${env.SONAR_PASSWORD} -s '${env.SONAR_HOST_URL}/api/projects/search?projects=${project.toLowerCase()}' | jq '.components[] | select(.key == \"${project.toLowerCase()}\") | .key'",
+                        returnStatus: true
+                    ) == 0
+
+                    if (projectExists) {
+                        echo "Project ${project} already exists in SonarQube. Updating analysis."
+
+                        // Update SonarQube analysis
                         dir(project) {
-                            // Run Maven commands for SonarQube analysis
-                            sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
-
-                            // SonarQube analysis
+                            sh "mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true"
                             sh "mvn sonar:sonar " +
                                "-Dsonar.login=${env.SONAR_LOGIN} " +
                                "-Dsonar.password=${env.SONAR_PASSWORD} " +
-                               "-Dsonar.projectKey=${project.toLowerCase()} " + // Ensure lowercase project key
+                               "-Dsonar.projectKey=${project.toLowerCase()} " +
+                               "-Dsonar.host.url=${env.SONAR_HOST_URL}"
+                        }
+                    } else {
+                        echo "Project ${project} does not exist in SonarQube. Creating new analysis."
+
+                        // Run SonarQube analysis
+                        dir(project) {
+                            sh "mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true"
+                            sh "mvn sonar:sonar " +
+                               "-Dsonar.login=${env.SONAR_LOGIN} " +
+                               "-Dsonar.password=${env.SONAR_PASSWORD} " +
+                               "-Dsonar.projectKey=${project.toLowerCase()} " +
                                "-Dsonar.host.url=${env.SONAR_HOST_URL}"
                         }
                     }
