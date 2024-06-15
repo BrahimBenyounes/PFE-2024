@@ -10,6 +10,7 @@ pipeline {
         SONAR_PASSWORD = 'vagrant'
     }
 
+
     stages {
         stage('SonarQube Analysis') {
             steps {
