@@ -8,6 +8,17 @@ pipeline {
     }
 
     stages {
+
+        stage('Build and Deploy jeureka') {
+            steps {
+                script {
+                    dir('eureka') {
+                        sh 'mvn clean deploy'
+                    }
+                }
+            }
+        }
+        
         stage('Build and Deploy to Nexus') {
             steps {
                 script {
