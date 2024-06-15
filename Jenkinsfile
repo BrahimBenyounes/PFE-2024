@@ -2,41 +2,32 @@ pipeline {
     agent any
 
     environment {
+        DOCKER_IMAGE_VERSION = '1.0.0'
+        DOCKER_HUB_USERNAME = 'brahim2023'
+        DOCKER_COMPOSE_FILE = 'docker-compose-test.yml'
         SONAR_HOST_URL = 'http://192.168.1.160:9000'
-        SONAR_LOGIN = credentials('sonar-login')
-        PROJECT_KEYS = 'APIGateway,eureka,operateur,product,stock'
-        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        SONAR_LOGIN = 'admin'
+        SONAR_PASSWORD = 'vagrant'
     }
 
+
     stages {
-        stage('Delete Projects from SonarQube') {
+        stage('SonarQube Analysis') {
             steps {
                 script {
-                    def projectKeys = PROJECT_KEYS.split(',')
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
+                        echo "Processing project: ${project}"
 
-                    projectKeys.each { key ->
-                        sh "curl -u admin:vagrant -X POST '${SONAR_HOST_URL}/api/projects/delete?key=${key}'"
-                    }
-                }
-            }
-        }
+                        // Change directory to the project
+                        dir(project) {
+                            // Run Maven commands for SonarQube analysis
+                            sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
 
-        stage('Recreate and Analyze Projects') {
-            steps {
-                script {
-                    def projectKeys = PROJECT_KEYS.split(',')
-
-                    projectKeys.each { key ->
-                        echo "Processing project: ${key}"
-
-                        dir(key) {
-                            // Perform necessary actions to recreate project if needed
-
-                            // Example Maven commands to build and analyze
-                            sh "mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true"
+                            // SonarQube analysis
                             sh "mvn sonar:sonar " +
                                "-Dsonar.login=${env.SONAR_LOGIN} " +
-                               "-Dsonar.projectKey=${key.toLowerCase()} " +
+                               "-Dsonar.password=${env.SONAR_PASSWORD} " +
+                               "-Dsonar.projectKey=GESTIONdeSTOCK " +
                                "-Dsonar.host.url=${env.SONAR_HOST_URL}"
                         }
                     }
@@ -47,11 +38,7 @@ pipeline {
         stage('Nexus Deployment') {
             steps {
                 script {
-                    // Define the list of projects
-                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
-
-                    // Loop through each project
-                    PROJECTS.each { project ->
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
                         echo "Deploying project: ${project}"
 
                         // Change directory to the project
@@ -68,10 +55,7 @@ pipeline {
             steps {
                 script {
                     // Define the list of microservices
-                    def MICROSERVICES = ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"]
-
-                    // Loop through each microservice and deploy
-                    MICROSERVICES.each { serviceName ->
+                    ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"].each { serviceName ->
                         deployMicroservice(serviceName)
                     }
                 }
