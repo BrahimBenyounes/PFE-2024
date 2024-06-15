@@ -73,7 +73,7 @@ pipeline {
                 }
             }
         }
-        }
+       }
 
         stage('Nexus Deployment') {
             steps {
