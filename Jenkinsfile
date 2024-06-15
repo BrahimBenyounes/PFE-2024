@@ -4,6 +4,9 @@ pipeline {
     environment {
         SONAR_HOST_URL = 'http://192.168.1.160:9000'
         SONAR_LOGIN = credentials('sonarqube-login')
+    }
+
+    environment {
         SONAR_PROJECT_KEYS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
     }
 
