@@ -10,32 +10,33 @@ pipeline {
         SONAR_PASSWORD = 'vagrant'
     }
 
-
     stages {
-            stage('SonarQube Analysis') {
-                steps {
-                    script {
-                        // Loop through each microservice
-                        ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
-                            echo "Processing project: ${project}"
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    // Loop through each microservice
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
+                        echo "Processing project: ${project}"
 
-                            // Change directory to the project
-                            dir(project) {
-                                // Run Maven commands for SonarQube analysis
-                                sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
+                        // Generate a unique project key based on microservice name and timestamp
+                        def projectKey = "${project}-${getTimeStamp()}"
 
-                                // SonarQube analysis
-                                sh "mvn sonar:sonar " +
-                                   "-Dsonar.login=${env.SONAR_LOGIN} " +
-                                   "-Dsonar.password=${env.SONAR_PASSWORD} " +
-                                   "-Dsonar.projectKey=GestionDeStock " +  // Adjust project key as needed
-                                   "-Dsonar.host.url=${env.SONAR_HOST_URL}"
-                            }
+                        // Change directory to the project
+                        dir(project) {
+                            // Run Maven commands for SonarQube analysis
+                            sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
+
+                            // SonarQube analysis
+                            sh "mvn sonar:sonar " +
+                               "-Dsonar.login=${env.SONAR_LOGIN} " +
+                               "-Dsonar.password=${env.SONAR_PASSWORD} " +
+                               "-Dsonar.projectKey=${projectKey} " +
+                               "-Dsonar.host.url=${env.SONAR_HOST_URL}"
                         }
                     }
                 }
             }
-
+        }
 
         stage('Nexus Deployment') {
             steps {
@@ -64,6 +65,13 @@ pipeline {
             }
         }
     }
+}
+
+// Function to generate timestamp
+def getTimeStamp() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMddHHmmss')
+    return formattedDate
 }
 
 def deployMicroservice(serviceName) {
