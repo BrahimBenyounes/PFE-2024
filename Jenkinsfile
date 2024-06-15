@@ -6,14 +6,12 @@ pipeline {
         SONAR_LOGIN = credentials('sonarqube-login')
     }
 
-    environment {
-        SONAR_PROJECT_KEYS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
-    }
-
     stages {
         stage('SonarQube Analysis') {
             steps {
                 script {
+                    def SONAR_PROJECT_KEYS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+
                     SONAR_PROJECT_KEYS.each { projectKey ->
                         echo "Processing project: ${projectKey}"
 
@@ -33,7 +31,6 @@ pipeline {
         stage('Nexus Deployment') {
             steps {
                 script {
-                    // Define the list of projects for Nexus deployment
                     def NEXUS_PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
 
                     NEXUS_PROJECTS.each { project ->
@@ -52,7 +49,6 @@ pipeline {
         stage('Deploy Microservices') {
             steps {
                 script {
-                    // Define the list of microservices for deployment
                     ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"].each { serviceName ->
                         deployMicroservice(serviceName)
                     }
