@@ -2,55 +2,25 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_VERSION = '1.0.0'
-        DOCKER_HUB_USERNAME = 'brahim2023'
-        DOCKER_COMPOSE_FILE = 'docker-compose-test.yml'
         SONAR_HOST_URL = 'http://192.168.1.160:9000'
-        SONAR_LOGIN = 'admin'
-        SONAR_PASSWORD = 'vagrant'
-        SONAR_TOKEN = 'your_sonarqube_token_here' // Update with your SonarQube token
+        SONAR_LOGIN = credentials('sonarqube-login')
+        SONAR_PROJECT_KEYS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
     }
 
     stages {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Define the list of projects
-                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+                    SONAR_PROJECT_KEYS.each { projectKey ->
+                        echo "Processing project: ${projectKey}"
 
-                    PROJECTS.each { project ->
-                        echo "Processing project: ${project}"
-
-                        // Check if project already exists in SonarQube
-                        def projectExists = sh(
-                            script: "curl -u ${env.SONAR_LOGIN}:${env.SONAR_PASSWORD} -s '${env.SONAR_HOST_URL}/api/projects/search?projects=${project.toLowerCase()}' | jq '.components[] | select(.key == \"${project.toLowerCase()}\") | .key'",
-                            returnStatus: true
-                        ) == 0
-
-                        if (projectExists) {
-                            echo "Project ${project} already exists in SonarQube. Updating analysis."
-
-                            // Update SonarQube analysis
-                            dir(project) {
-                                sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
-                                sh "mvn sonar:sonar " +
-                                   "-Dsonar.login=${env.SONAR_LOGIN} " +
-                                   "-Dsonar.password=${env.SONAR_PASSWORD} " +
-                                   "-Dsonar.projectKey=${project.toLowerCase()} " +
-                                   "-Dsonar.host.url=${env.SONAR_HOST_URL}"
-                            }
-                        } else {
-                            echo "Project ${project} does not exist in SonarQube. Creating new analysis."
-
-                            // Run SonarQube analysis
-                            dir(project) {
-                                sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
-                                sh "mvn sonar:sonar " +
-                                   "-Dsonar.login=${env.SONAR_LOGIN} " +
-                                   "-Dsonar.password=${env.SONAR_PASSWORD} " +
-                                   "-Dsonar.projectKey=${project.toLowerCase()} " +
-                                   "-Dsonar.host.url=${env.SONAR_HOST_URL}"
-                            }
+                        // Run SonarQube analysis
+                        dir(projectKey.toLowerCase()) {
+                            sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
+                            sh "mvn sonar:sonar " +
+                               "-Dsonar.login=${env.SONAR_LOGIN} " +
+                               "-Dsonar.projectKey=${projectKey} " +
+                               "-Dsonar.host.url=${env.SONAR_HOST_URL}"
                         }
                     }
                 }
@@ -60,11 +30,10 @@ pipeline {
         stage('Nexus Deployment') {
             steps {
                 script {
-                    // Define the list of projects
-                    def PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
+                    // Define the list of projects for Nexus deployment
+                    def NEXUS_PROJECTS = ['APIGateway', 'eureka', 'operateur', 'product', 'stock']
 
-                    // Loop through each project
-                    PROJECTS.each { project ->
+                    NEXUS_PROJECTS.each { project ->
                         echo "Deploying project: ${project}"
 
                         // Change directory to the project
@@ -80,7 +49,7 @@ pipeline {
         stage('Deploy Microservices') {
             steps {
                 script {
-                    // Define the list of microservices
+                    // Define the list of microservices for deployment
                     ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"].each { serviceName ->
                         deployMicroservice(serviceName)
                     }
