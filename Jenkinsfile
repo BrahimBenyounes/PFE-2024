@@ -41,7 +41,7 @@ pipeline {
         stage('Nexus Deployment') {
             steps {
                 script {
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
+                    ["APIGateway", "eureka"].each { project ->
                         echo "Deploying project: ${project}"
 
                         // Change directory to the project
