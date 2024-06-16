@@ -4,13 +4,24 @@ pipeline {
     environment {
         DOCKER_IMAGE_VERSION = '1.0.0'
         DOCKER_HUB_USERNAME = 'brahim2023'
-        DOCKER_COMPOSE_FILE = 'docker-compose-test.yml'
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
         SONAR_HOST_URL = 'http://192.168.1.160:9000'
         SONAR_LOGIN = 'admin'
         SONAR_PASSWORD = 'vagrant'
     }
 
     stages {
+        stage('Unit Test - Product Microservice') {
+            steps {
+                script {
+                    dir('product') {
+                        // Run unit tests with Mockito
+                        sh 'mvn clean test'
+                    }
+                }
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -38,16 +49,29 @@ pipeline {
             }
         }
 
-        stage('Nexus Deployment') {
+                stage('Nexus Deployment') {
+                    steps {
+                        script {
+                            ["eureka"].each { project ->
+                                echo "Deploying project: ${project}"
+
+                                // Change directory to the project
+                                dir(project) {
+                                    // Deploy the project to Nexus (assuming Nexus deployment is configured in pom.xml)
+                                    sh 'mvn clean deploy'
+                                }
+                            }
+                        }
+                    }
+                }
+
+        stage('Maven Package on Server') {
             steps {
                 script {
-                    ["APIGateway", "eureka"].each { project ->
-                        echo "Deploying project: ${project}"
-
-                        // Change directory to the project
-                        dir(project) {
-                            // Deploy the project to Nexus (assuming Nexus deployment is configured in pom.xml)
-                            sh 'mvn clean deploy'
+                    // Perform Maven clean package for each microservice on the Jenkins server
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+                        dir(serviceName) {
+                            sh 'mvn clean package -Dmaven.test.skip=true'
                         }
                     }
                 }
@@ -57,9 +81,27 @@ pipeline {
         stage('Deploy Microservices') {
             steps {
                 script {
-                    // Define the list of microservices
-                    ["eureka", "actor", "contract", "invoice", "api-gateway", "auth", "settings", "static-tables", "asset"].each { serviceName ->
+                    // Stop existing containers before deployment
+                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
+
+                    // Deploy each microservice using Docker
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
                         deployMicroservice(serviceName)
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images to Docker Hub') {
+            steps {
+                script {
+                    // Log in to Docker Hub
+                    sh "docker login -u ${env.DOCKER_HUB_USERNAME} -p Lifeisgoodbrahim@@"
+
+                    // Tag and push each microservice's Docker image
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+                        sh "docker tag ${serviceName}:${DOCKER_IMAGE_VERSION} ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
+                        sh "docker push ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
                     }
                 }
             }
@@ -76,10 +118,5 @@ def getTimeStamp() {
 
 def deployMicroservice(serviceName) {
     echo "Deploying microservice: ${serviceName}"
-    // Implement deployment logic for each microservice
-    // Example: Use Docker Compose or custom deployment scripts
-    // For illustration, let's echo the deployment command
-    echo "Deploying ${serviceName}..."
-    // Replace this with actual deployment commands as per your setup
     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d ${serviceName}"
 }
