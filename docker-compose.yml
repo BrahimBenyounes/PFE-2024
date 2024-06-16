@@ -23,15 +23,7 @@ services:
     networks:
       - ms-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://eureka:8761/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    environment:
-      - eureka.instance.hostname=eureka
-      - eureka.client.service-url.defaultZone=http://eureka:8761/eureka/
+
 
   mysql-product:
     image: mysql:8
@@ -41,10 +33,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=product
-    healthcheck:
-            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-            timeout: 20s
-            retries: 10
+
 
   product:
     container_name: product
@@ -60,17 +49,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=root
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-product/product?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
-    healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://product:8087 || exit 1"]
-      interval: 60s
-      retries: 5
-      start_period: 15s
-      timeout: 10s
-    depends_on:
-      mysql-product:
-        condition: service_healthy
-      eureka:
-        condition: service_healthy
+
 
   
   mysql-stock:
@@ -81,10 +60,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=stock
-    healthcheck:
-            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-            timeout: 20s
-            retries: 10
+
 
 
   stock:
@@ -101,17 +77,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=root
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-stock/stock?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
-    healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://stock:8084 || exit 1"]
-      interval: 60s
-      retries: 5
-      start_period: 15s
-      timeout: 10s
-    depends_on:
-      mysql-stock:
-        condition: service_healthy
-      eureka:
-        condition: service_healthy
+
 
 
   mysql-operateur:
@@ -142,17 +108,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=root
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-operateur/operateur?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - eureka.client.service-url.defaultZone=http://eureka:8761/eureka
-    healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://stock:8086 || exit 1"]
-      interval: 60s
-      retries: 5
-      start_period: 15s
-      timeout: 10s
-    depends_on:
-      mysql-operateur:
-        condition: service_healthy
-      eureka:
-        condition: service_healthy
+
 
   gateway:
     container_name: gateway

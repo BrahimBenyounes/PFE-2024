@@ -11,7 +11,7 @@ pipeline {
     }
 
     stages {
-        stage('Unit Test - Product Microservice') {
+        stage('Junit and Mockito Tests') {
             steps {
                 script {
                     dir('product') {
