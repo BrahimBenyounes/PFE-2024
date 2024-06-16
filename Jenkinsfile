@@ -84,10 +84,7 @@ pipeline {
                     // Stop existing containers before deployment
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
 
-                    // Deploy each microservice using Docker
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
-                        deployMicroservice(serviceName)
-                    }
+                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
                 }
             }
         }
@@ -116,7 +113,3 @@ def getTimeStamp() {
     return formattedDate
 }
 
-def deployMicroservice(serviceName) {
-    echo "Deploying microservice: ${serviceName}"
-    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d ${serviceName}"
-}
