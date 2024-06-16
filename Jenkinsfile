@@ -89,20 +89,20 @@ pipeline {
             }
         }
 
-        stage('Push Docker Images to Docker Hub') {
-            steps {
-                script {
+       // stage('Push Docker Images to Docker Hub') {
+          //  steps {
+              //  script {
                     // Log in to Docker Hub
-                    sh "docker login -u ${env.DOCKER_HUB_USERNAME} -p Lifeisgoodbrahim@@"
+                   // sh "docker login -u ${env.DOCKER_HUB_USERNAME} -p Lifeisgoodbrahim@@"
 
                     // Tag and push each microservice's Docker image
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
-                        sh "docker tag ${serviceName}:${DOCKER_IMAGE_VERSION} ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
-                        sh "docker push ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
-                    }
-                }
-            }
-        }
+                   // ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+                       // sh "docker tag ${serviceName}:${DOCKER_IMAGE_VERSION} ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
+                       // sh "docker push ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
+                  //  }
+               // }
+            //}
+        //}
     }
 }
 
