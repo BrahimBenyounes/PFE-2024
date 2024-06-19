@@ -16,7 +16,6 @@ pipeline {
             steps {
                 script {
                     dir('product') {
-                        // Run unit tests with Mockito
                         sh 'mvn clean test'
                     }
                 }
@@ -26,24 +25,12 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Loop through each microservice
                     ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
                         echo "Processing project: ${project}"
-
-                        // Generate a unique project key based on microservice name and timestamp
                         def projectKey = "${project}-${getTimeStamp()}"
-
-                        // Change directory to the project
                         dir(project) {
-                            // Run Maven commands for SonarQube analysis
                             sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
-
-                            // SonarQube analysis
-                            sh "mvn sonar:sonar " +
-                               "-Dsonar.login=${env.SONAR_LOGIN} " +
-                               "-Dsonar.password=${env.SONAR_PASSWORD} " +
-                               "-Dsonar.projectKey=${projectKey} " +
-                               "-Dsonar.host.url=${env.SONAR_HOST_URL}"
+                            sh "mvn sonar:sonar -Dsonar.login=${env.SONAR_LOGIN} -Dsonar.password=${env.SONAR_PASSWORD} -Dsonar.projectKey=${projectKey} -Dsonar.host.url=${env.SONAR_HOST_URL}"
                         }
                     }
                 }
@@ -55,10 +42,7 @@ pipeline {
                 script {
                     ["eureka"].each { project ->
                         echo "Deploying project: ${project}"
-
-                        // Change directory to the project
                         dir(project) {
-                            // Deploy the project to Nexus (assuming Nexus deployment is configured in pom.xml)
                             sh 'mvn clean deploy'
                         }
                     }
@@ -69,7 +53,6 @@ pipeline {
         stage('Maven Package on Server') {
             steps {
                 script {
-                    // Perform Maven clean package for each microservice on the Jenkins server
                     ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
                         dir(serviceName) {
                             sh 'mvn clean package -Dmaven.test.skip=true'
@@ -82,7 +65,6 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    // Build Docker images for each microservice
                     ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
                         dir(serviceName) {
                             sh "docker build -t ${serviceName}:${DOCKER_IMAGE_VERSION} ."
@@ -95,23 +77,16 @@ pipeline {
         stage('Deploy Microservices') {
             steps {
                 script {
-                    // Stop existing containers before deployment
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
-
                     sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
                 }
             }
         }
 
-
-
-       stage('Push Docker Images to Docker Hub') {
+        stage('Push Docker Images to Docker Hub') {
             steps {
                 script {
-                    // Log in to Docker Hub using environment variables
                     sh "docker login -u ${env.DOCKER_HUB_USERNAME} -p ${env.DOCKER_HUB_PASSWORD}"
-
-                    // Tag and push each microservice's Docker image
                     ["eureka", "operateur", "product", "stock"].each { serviceName ->
                         sh "docker tag ${serviceName}:${DOCKER_IMAGE_VERSION} ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
                         sh "docker push ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
@@ -120,8 +95,8 @@ pipeline {
             }
         }
     }
+}
 
-// Function to generate timestamp
 def getTimeStamp() {
     def date = new Date()
     def formattedDate = date.format('yyyyMMddHHmmss')
