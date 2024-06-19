@@ -112,7 +112,7 @@ pipeline {
                     sh "docker login -u ${env.DOCKER_HUB_USERNAME} -p ${env.DOCKER_HUB_PASSWORD}"
 
                     // Tag and push each microservice's Docker image
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+                    ["eureka", "operateur", "product", "stock"].each { serviceName ->
                         sh "docker tag ${serviceName}:${DOCKER_IMAGE_VERSION} ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
                         sh "docker push ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
                     }
