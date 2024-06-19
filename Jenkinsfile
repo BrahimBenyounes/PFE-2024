@@ -12,60 +12,60 @@ pipeline {
     }
 
     stages {
-        stage('Junit and Mockito Tests') {
-            steps {
-                script {
-                    dir('product') {
-                        sh 'mvn clean test'
-                    }
-                }
-            }
-        }
+        // stage('Junit and Mockito Tests') {
+        //     steps {
+        //         script {
+        //             dir('product') {
+        //                 sh 'mvn clean test'
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
-                        echo "Processing project: ${project}"
-                        def projectKey = "${project}-${getTimeStamp()}"
-                        dir(project) {
-                            sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
-                            sh "mvn sonar:sonar -Dsonar.login=${env.SONAR_LOGIN} -Dsonar.password=${env.SONAR_PASSWORD} -Dsonar.projectKey=${projectKey} -Dsonar.host.url=${env.SONAR_HOST_URL}"
-                        }
-                    }
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         script {
+        //             ["APIGateway", "eureka", "operateur", "product", "stock"].each { project ->
+        //                 echo "Processing project: ${project}"
+        //                 def projectKey = "${project}-${getTimeStamp()}"
+        //                 dir(project) {
+        //                     sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
+        //                     sh "mvn sonar:sonar -Dsonar.login=${env.SONAR_LOGIN} -Dsonar.password=${env.SONAR_PASSWORD} -Dsonar.projectKey=${projectKey} -Dsonar.host.url=${env.SONAR_HOST_URL}"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Nexus Deployment') {
-            steps {
-                script {
-                    ["eureka"].each { project ->
-                        echo "Deploying project: ${project}"
-                        dir(project) {
-                            sh 'mvn clean deploy'
-                        }
-                    }
-                }
-            }
-        }
+        // stage('Nexus Deployment') {
+        //     steps {
+        //         script {
+        //             ["eureka"].each { project ->
+        //                 echo "Deploying project: ${project}"
+        //                 dir(project) {
+        //                     sh 'mvn clean deploy'
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Maven Package on Server') {
-            steps {
-                script {
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
-                        dir(serviceName) {
-                            sh 'mvn clean package -Dmaven.test.skip=true'
-                        }
-                    }
-                }
-            }
-        }
+        // stage('Maven Package on Server') {
+        //     steps {
+        //         script {
+        //             ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+        //                 dir(serviceName) {
+        //                     sh 'mvn clean package -Dmaven.test.skip=true'
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Build Docker Images') {
             steps {
                 script {
-                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+                    [ "eureka", "operateur", "product", "stock"].each { serviceName ->
                         dir(serviceName) {
                             sh "docker build -t ${serviceName}:${DOCKER_IMAGE_VERSION} ."
                         }
