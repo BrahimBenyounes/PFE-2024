@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE_VERSION = '1.0.0'
         DOCKER_HUB_USERNAME = 'brahim2023'
+        DOCKER_HUB_PASSWORD = 'Lifeisgoodbrahim@@'
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
         SONAR_HOST_URL = 'http://192.168.1.160:9000'
         SONAR_LOGIN = 'admin'
@@ -49,21 +50,21 @@ pipeline {
             }
         }
 
-                stage('Nexus Deployment') {
-                    steps {
-                        script {
-                            ["eureka"].each { project ->
-                                echo "Deploying project: ${project}"
+        stage('Nexus Deployment') {
+            steps {
+                script {
+                    ["eureka"].each { project ->
+                        echo "Deploying project: ${project}"
 
-                                // Change directory to the project
-                                dir(project) {
-                                    // Deploy the project to Nexus (assuming Nexus deployment is configured in pom.xml)
-                                    sh 'mvn clean deploy'
-                                }
-                            }
+                        // Change directory to the project
+                        dir(project) {
+                            // Deploy the project to Nexus (assuming Nexus deployment is configured in pom.xml)
+                            sh 'mvn clean deploy'
                         }
                     }
                 }
+            }
+        }
 
         stage('Maven Package on Server') {
             steps {
@@ -72,6 +73,19 @@ pipeline {
                     ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
                         dir(serviceName) {
                             sh 'mvn clean package -Dmaven.test.skip=true'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    // Build Docker images for each microservice
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+                        dir(serviceName) {
+                            sh "docker build -t ${serviceName}:${DOCKER_IMAGE_VERSION} ."
                         }
                     }
                 }
@@ -89,22 +103,23 @@ pipeline {
             }
         }
 
-       // stage('Push Docker Images to Docker Hub') {
-          //  steps {
-              //  script {
-                    // Log in to Docker Hub
-                   // sh "docker login -u ${env.DOCKER_HUB_USERNAME} -p Lifeisgoodbrahim@@"
+
+
+       stage('Push Docker Images to Docker Hub') {
+            steps {
+                script {
+                    // Log in to Docker Hub using environment variables
+                    sh "docker login -u ${env.DOCKER_HUB_USERNAME} -p ${env.DOCKER_HUB_PASSWORD}"
 
                     // Tag and push each microservice's Docker image
-                   // ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
-                       // sh "docker tag ${serviceName}:${DOCKER_IMAGE_VERSION} ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
-                       // sh "docker push ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
-                  //  }
-               // }
-            //}
-        //}
+                    ["APIGateway", "eureka", "operateur", "product", "stock"].each { serviceName ->
+                        sh "docker tag ${serviceName}:${DOCKER_IMAGE_VERSION} ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
+                        sh "docker push ${env.DOCKER_HUB_USERNAME}/${serviceName}:${DOCKER_IMAGE_VERSION}"
+                    }
+                }
+            }
+        }
     }
-}
 
 // Function to generate timestamp
 def getTimeStamp() {
@@ -112,4 +127,3 @@ def getTimeStamp() {
     def formattedDate = date.format('yyyyMMddHHmmss')
     return formattedDate
 }
-
